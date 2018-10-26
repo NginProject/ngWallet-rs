@@ -48,7 +48,7 @@ Return the list of all not hidden (by default) accounts from the keystore.
 
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
     * `show_hidden` (Boolean, optional) - also show hidden accounts
 
 *Result*:
@@ -84,7 +84,7 @@ Hide an account from the list returned by default by `emerald_listAccounts`.
     * `address` (String) - hex-encoded 20 bytes public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required account exists
 
@@ -112,7 +112,7 @@ Show an account that was hidden before by the command `emerald_hideAccount`.
     * `address` (String) - hex-encoded 20 bytes public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required account exists
 
@@ -142,7 +142,7 @@ Creates a new account and stores it locally as a passphrase-encoded keystore fil
     * `passphrase` (String) - passphrase used to encode keyfile (recommend to use 8+ words with good entropy)
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `address` (String) - hex-encoded 20 bytes public address
 
@@ -154,7 +154,7 @@ Creates a new account and stores it locally as a passphrase-encoded keystore fil
 <-- {"jsonrpc": "2.0", "result": "0xe9a7e26bf5c05fe3bae272d4c940bd7158611ce9", "id": 1}
 ```
 
-.Full format with all optional parameters for `morden` (id: `62`)
+.Full format with all optional parameters for `morden` (id: `101`)
 ```
 --> {"jsonrpc": "2.0",
      "method": "emerald_newAccount",
@@ -179,7 +179,7 @@ Recreate account with the same public address, but with a different passphrase.
     * `new_passphrase` (String) - new passphrase to recreate keyfile (recommend to use 8+ words with good entropy)
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required account exists
 
@@ -202,7 +202,7 @@ Update not secured by passphrase account metadata, like `name` and `description`
     * `description` (String, optional) - account description
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required account exists
 
@@ -230,7 +230,7 @@ Import a new account from an external keyfile. Handle both cases: normal account
         * `keyfile` (Object) - should be totally comply with the [Web3 UTC / JSON format](https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition)
         * `additional` (Object, optional)
         ** `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-        ** `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+        ** `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
     - HD wallet:
         * `keyfile` (Object) - should be totally comply with format specified in example
@@ -295,7 +295,7 @@ Returns an account keyfile associated with the account.
     * `address` (String) - hex-encoded 20 bytes public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `keyfile` (Object) - normal account in [Web3 UTC / JSON format](https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition),
  or HD wallet account (see example)
@@ -352,7 +352,7 @@ Return the list of all not hidden (by default) smart contracts from the local st
 
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
     * `show_hidden` (Boolean, optional) - also show hidden accounts
 
 *Result*:
@@ -395,7 +395,7 @@ Hide a smart contract from the list returned by default by `emerald_listContract
     * `address` (String) - hex-encoded 20 bytes smart contract public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required smart contract exists
 
@@ -423,7 +423,7 @@ Show a smart contract that was hidden before by the command `emerald_hideContrac
     * `address` (String) - hex-encoded 20 bytes smart contract public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required smart contract exists
 
@@ -453,7 +453,7 @@ Update contract metadata. Contract address and chain information are used to ide
     * `description` (String, optional) - contract description
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if required contract exists
 
@@ -499,7 +499,7 @@ Import a new smart contract Application Binary Interface (ABI) locally.
         * `outputs` (Array) - an array of objects, each of which contains a name and a type
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `accept` (Boolean) - `true` if successful
 
@@ -573,7 +573,7 @@ Returns contract object associated with the contract.
     * `address` (String) - hex-encoded 20 bytes publ/usr/local/bin/ic address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `contract` (Object) - JSON format for a contract ABI, as defined [here](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI).
 
@@ -632,7 +632,7 @@ If `function` and `arguments` are provided, they will be encoded according smart
     * `passphrase` (String) - passphrase used to encode keyfile
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `data` (String) - hex-encoded signed raw transaction data
 
@@ -703,7 +703,7 @@ Creates a new account from a mnemonic and stores it locally as a passphrase-enco
     * `hd_path` (String)
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `address` (String) - hex-encoded 20 bytes public address
 
@@ -715,7 +715,7 @@ Creates a new account from a mnemonic and stores it locally as a passphrase-enco
 <-- {"jsonrpc": "2.0", "result": "0xe9a7e26bf5c05fe3bae272d4c940bd7158611ce9", "id": 1}
 ```
 
-* Full format with all optional parameters for `morden` (id: `62`)
+* Full format with all optional parameters for `morden` (id: `101`)
 ```
 --> {"jsonrpc": "2.0",
      "method": "emerald_importMnemonic",
@@ -741,7 +741,7 @@ Add new contact into address book
     * `description` (String, optional) - address' description 
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 *Result*: `address` (String) - hex-encoded 20 bytes public address
 
@@ -762,7 +762,7 @@ Return all addresses for particular chain
 
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 
 *Examples*
@@ -783,7 +783,7 @@ Delete contact from address book
 * `address` (String) - hex-encoded 20 bytes public address
 * `additional` (Object, optional)
     * `chain` (String, optional) - chain name, by default `mainnet`, other possible variant `morden`
-    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `61`
+    * `chain_id` (Number, optional) - chain id number, by default for `mainnet` it equals `111`
 
 
 *Examples*

@@ -126,7 +126,7 @@ mod tests {
            "to":"0x3f4E0668C20E100d7C2A27D4b177Ac65B2875D26",
            "value":"0x0de0b6b3a7640000",
            "data":"",
-           "chainId":61
+           "chainId":111
         }
         */
 
@@ -134,7 +134,7 @@ mod tests {
             "00b413b37c71bfb92719d16e28d7329dea5befa0d0b8190742f89e55617991cf",
         ));
 
-        let hex = tx.to_signed_raw(pk, 61 /*MAINNET_ID*/).unwrap().to_hex();
+        let hex = tx.to_signed_raw(pk, 111 /*MAINNET_ID*/).unwrap().to_hex();
         assert_eq!(hex,
                     "f86d\
                     808504e3b29200825208\
@@ -187,7 +187,7 @@ mod tests {
             "28b469dc4b039ff63fcd4cb708c668545e644cb25f21df6920aac20e4bc743f7",
         ));
 
-        assert_eq!(tx.to_signed_raw(pk, 62 /*TESTNET_ID*/).unwrap().to_hex(),
+        assert_eq!(tx.to_signed_raw(pk, 101 /*TESTNET_ID*/).unwrap().to_hex(),
                     "f871\
                     83\
                     100009\
