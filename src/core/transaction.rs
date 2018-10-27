@@ -34,8 +34,9 @@ impl Transaction {
 
     /// RLP packed signed transaction from provided `Signature`
     pub fn raw_from_sig(&self, chain: u8, sig: &Signature) -> Vec<u8> {
-        let mut rlp = self.to_rlp_raw(None);
-
+//        let mut rlp = self.to_rlp_raw(None);
+        let mut rlp = self.to_rlp_raw(Some(chain));
+        
         // [Simple replay attack protection](https://github.com/ethereum/eips/issues/155)
         // Can be already applied by HD wallet.
         // TODO: refactor to avoid this check
