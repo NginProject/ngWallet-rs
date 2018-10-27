@@ -44,8 +44,8 @@ impl ToHex for u64 {
 ///
 pub fn to_chain_name(id: u8) -> Option<String> {
     match id {
-        111 => Some("mainnet".to_string()),
-        101 => Some("testnet".to_string()),
+        61 => Some("mainnet".to_string()),
+        62 => Some("testnet".to_string()),
         _ => None,
     }
 }
@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn should_convert_to_chain_id() {
-        assert_eq!(to_chain_id("testnet"), Some(101));
+        assert_eq!(to_chain_id("testnet"), Some(62));
         assert_eq!(to_chain_id("testnet"), to_chain_id("morden"));
     }
 }
