@@ -359,7 +359,7 @@ pub fn sign_transaction(
                 data: transaction.data,
                 nonce: transaction.nonce,
             };
-            let chain_id = to_chain_id(&additional.chain, additional.chain_id, default_chain_id);
+            let chain_id = default_chain_id; // to_chain_id(&additional.chain, additional.chain_id, default_chain_id);
             match rpc_transaction.try_into() {
                 Ok(tr) => {
                     match kf.crypto {
