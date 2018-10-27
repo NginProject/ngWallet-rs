@@ -1,9 +1,7 @@
 //! # Advanced encryption standard (AES) cipher
 
 use super::Error;
-use aes_ctr::stream_cipher::generic_array::GenericArray;
-use aes_ctr::stream_cipher::{NewFixStreamCipher, StreamCipherCore};
-use aes_ctr::Aes128Ctr;
+use crypto::aes::{ctr, KeySize};
 use std::fmt;
 use std::str::FromStr;
 
@@ -21,11 +19,9 @@ pub enum Cipher {
 impl Cipher {
     /// Encrypt given text with provided key and initial vector
     pub fn encrypt(&self, data: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
-        let key = GenericArray::from_slice(key);
-        let iv = GenericArray::from_slice(iv);
-        let mut buf = data.to_vec();
-        let mut ctr = Aes128Ctr::new(key, iv);
-        ctr.apply_keystream(&mut buf);
+        let mut buf = vec![0u8; data.len()];
+        let mut ctr = ctr(KeySize::KeySize128, key, iv);
+        ctr.process(data, buf.as_mut_slice());
         buf
     }
 }

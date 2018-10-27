@@ -3,10 +3,12 @@
 use super::prf::Prf;
 use super::Error;
 use super::Salt;
-use hmac::Hmac;
-use pbkdf2::pbkdf2;
-use scrypt::{scrypt, ScryptParams};
-use sha2::{Sha256, Sha512};
+use crypto::pbkdf2::pbkdf2;
+//TODO: solve `mmap` call on windows for `rust-scrypt`
+#[cfg(target_os = "windows")]
+use crypto::scrypt::{scrypt, ScryptParams};
+#[cfg(all(unix))]
+use rust_scrypt::{scrypt, ScryptParams};
 use std::fmt;
 use std::str::FromStr;
 
@@ -124,27 +126,28 @@ impl Kdf {
                 match prf {
                     Prf::HmacSha256 => {
                         let mut hmac = prf.hmac(passphrase);
-                        pbkdf2::<Hmac<Sha256>>(
-                            passphrase.as_bytes(),
-                            kdf_salt,
-                            c as usize,
-                            &mut key,
-                        );
+                        pbkdf2(&mut hmac, kdf_salt, c, &mut key);
                     }
                     Prf::HmacSha512 => {
-                        pbkdf2::<Hmac<Sha512>>(
-                            passphrase.as_bytes(),
-                            kdf_salt,
-                            c as usize,
-                            &mut key,
-                        );
+                        let mut hmac = prf.hmac512(passphrase);
+                        pbkdf2(&mut hmac, kdf_salt, c, &mut key);
                     }
                 };
             }
+            #[cfg(target_os = "windows")]
             Kdf::Scrypt { n, r, p } => {
                 let log_n = (n as f64).log2().round() as u8;
-                let params = ScryptParams::new(log_n, r, p).expect("Invalid Scrypt parameters");
-                scrypt(passphrase.as_bytes(), kdf_salt, &params, &mut key).expect("Scrypt failed");
+                let params = ScryptParams::new(log_n, r, p);
+                scrypt(passphrase.as_bytes(), kdf_salt, &params, &mut key);
+            }
+            #[cfg(all(unix))]
+            Kdf::Scrypt { n, r, p } => {
+                let params = ScryptParams::new(
+                    u64::from(n),
+                    r,
+                    p,
+                );
+                scrypt(passphrase.as_bytes(), kdf_salt, &params, &mut key);
             }
         }
 
@@ -222,7 +225,7 @@ pub mod tests {
             to_32bytes("ae3cd4e7013836a3df6bd7241b12db061dbe2c6785853cce422d148a624ce0bd");
 
         assert_eq!(
-            hex::encode(Kdf::from(8).derive(32, &kdf_salt, "testpassword")),
+            Kdf::from(8).derive(32, &kdf_salt, "testpassword").to_hex(),
             "031dc7e0f4f375f6d6fdab7ad8d71834d844e39a6b62f9fb98d942bab76db0f9"
         );
     }
@@ -233,7 +236,9 @@ pub mod tests {
             to_32bytes("fd4acb81182a2c8fa959d180967b374277f2ccf2f7f401cb08d042cc785464b4");
 
         assert_eq!(
-            hex::encode(Kdf::from((2, 8, 1)).derive(32, &kdf_salt, "1234567890")),
+            Kdf::from((2, 8, 1))
+                .derive(32, &kdf_salt, "1234567890")
+                .to_hex(),
             "52a5dacfcf80e5111d2c7fbed177113a1b48a882b066a017f2c856086680fac7"
         );
     }

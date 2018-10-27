@@ -12,7 +12,7 @@ use super::util::{align_bytes, to_arr, to_chain_id, to_even_str, to_u64, trim_he
 use hdwallet::WManager;
 use jsonrpc_core::{Error as JsonRpcError, IoHandler, Params};
 use jsonrpc_http_server::{AccessControlAllowOrigin, DomainsValidation, ServerBuilder};
-use log::Level;
+use log::LogLevel;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::{self, Value};
@@ -225,10 +225,11 @@ pub fn start(
         .cors(DomainsValidation::AllowOnly(vec![
             AccessControlAllowOrigin::Any,
             AccessControlAllowOrigin::Null,
-        ])).start_http(addr)
+        ]))
+        .start_http(addr)
         .expect("Expect to build HTTP RPC server");
 
-    if log_enabled!(Level::Info) {
+    if log_enabled!(LogLevel::Info) {
         info!("Connector started on http://{}", server.address());
     }
 

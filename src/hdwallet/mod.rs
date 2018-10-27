@@ -110,13 +110,15 @@ impl WManager {
                 _ => Err(Error::HDWalletError(
                     "Address read returned invalid data length".to_string(),
                 )),
-            }).and_then(|res: Vec<u8>| {
+            })
+            .and_then(|res: Vec<u8>| {
                 from_utf8(&res[67..107])
                     .map(|ptr| ptr.to_string())
                     .map_err(|e| {
                         Error::HDWalletError(format!("Can't parse address: {}", e.to_string()))
                     })
-            }).and_then(|s| {
+            })
+            .and_then(|s| {
                 Address::from_str(&s).map_err(|e| {
                     Error::HDWalletError(format!("Can't parse address: {}", e.to_string()))
                 })
@@ -240,7 +242,7 @@ mod tests {
     use super::*;
     use core::Transaction;
     use hdwallet::bip32::{path_to_arr, to_prefixed_path};
-    use hex;
+    use rustc_serialize::hex::ToHex;
     use tests::*;
 
     pub const ETC_DERIVATION_PATH: [u8; 21] = [
@@ -278,7 +280,7 @@ mod tests {
         let fd = &manager.devices()[0].1;
         let sign = manager.sign_transaction(&fd, &rlp, None).unwrap();
 
-        assert_eq!(hex::encode(tx.raw_from_sig(chain, &sign)),
+        assert_eq!(tx.raw_from_sig(chain, &sign).to_hex(),
                    "f86d80\
                    85\
                    04e3b29200\
@@ -369,7 +371,7 @@ mod tests {
             11cccccccccccc1111cccccccccccc1111cccccccccccc1111cccccccccccc11\
             11cccccccccccc1111cccccccccccc1111cccccccccccc1111cccccccccccc11
         */
-        println!(">> RLP: {:?}", hex::encode(&rlp));
+        println!(">> RLP: {:?}", &rlp.to_hex());
         let sign = manager.sign_transaction(&fd, &rlp, None);
         assert!(sign.is_ok());
         debug!("Signature: {:?}", &sign.unwrap());
@@ -388,10 +390,7 @@ mod tests {
 
         let fd = &manager.devices()[0].1;
         let addr = manager.get_address(fd, None).unwrap();
-        assert_eq!(
-            "78296f1058dd49c5d6500855f59094f0a2876397",
-            hex::encode(&*addr)
-        );
+        assert_eq!("78296f1058dd49c5d6500855f59094f0a2876397", addr.to_hex());
     }
 
     #[test]

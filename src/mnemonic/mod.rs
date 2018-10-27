@@ -7,13 +7,14 @@ mod error;
 mod language;
 
 pub use self::error::Error;
-pub use self::language::{Language, BIP39_ENGLISH_WORDLIST};
+pub use self::language::{BIP39_ENGLISH_WORDLIST, Language};
+use crypto::digest::Digest;
+use crypto::sha2;
 pub use hdwallet::bip32::{generate_key, HDPath};
 use keystore::{Kdf, Prf};
 use num::bigint::BigUint;
 use num::{FromPrimitive, ToPrimitive};
 use rand::{OsRng, Rng};
-use sha2::{self, Digest};
 use std::iter::repeat;
 use std::ops::{BitAnd, Shr};
 
@@ -154,7 +155,11 @@ pub fn gen_entropy(byte_length: usize) -> Result<Vec<u8>, Error> {
 fn checksum(data: &[u8]) -> u8 {
     let mut hash = sha2::Sha256::new();
     hash.input(data);
-    hash.result()[0]
+
+    let mut out: Vec<u8> = repeat(0).take(32).collect();
+    hash.result(&mut out);
+
+    out[0]
 }
 
 /// Get indexes from entropy

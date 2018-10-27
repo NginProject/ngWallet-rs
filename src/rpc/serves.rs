@@ -108,7 +108,8 @@ pub fn list_accounts(
             description: info.description.clone(),
             hardware: info.is_hardware,
             is_hidden: info.is_hidden,
-        }).collect();
+        })
+        .collect();
     debug!(
         "Accounts listed with `show_hidden`: {}\n\t{:?}",
         additional.show_hidden, res

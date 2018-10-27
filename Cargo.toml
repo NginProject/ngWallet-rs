@@ -9,6 +9,7 @@ categories = ["embedded", "external-ffi-bindings"]
 readme = "README.md"
 license = "Apache-2.0"
 
+
 [lib]
 name = "ngWallet_rs"
 path = "src/lib.rs"
