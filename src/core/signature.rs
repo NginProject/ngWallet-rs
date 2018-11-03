@@ -23,17 +23,17 @@ lazy_static! {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Signature {
     /// ‘recovery id’, a 1 byte value specifying the sign and finiteness of the curve point
-    pub v: u8,
+    pub v: u16,
 
     /// ECDSA signature first point (0 < r < secp256k1n)
-    pub r: [u8; 32],
+    pub r: [u16; 32],
 
     /// ECDSA signature second point (0 < s < secp256k1n ÷ 2 + 1)
-    pub s: [u8; 32],
+    pub s: [u16; 32],
 }
 
-impl From<[u8; ECDSA_SIGNATURE_BYTES]> for Signature {
-    fn from(data: [u8; ECDSA_SIGNATURE_BYTES]) -> Self {
+impl From<[u16; ECDSA_SIGNATURE_BYTES]> for Signature {
+    fn from(data: [u16; ECDSA_SIGNATURE_BYTES]) -> Self {
         let mut sign = Signature::default();
 
         sign.v = data[0];
@@ -44,8 +44,8 @@ impl From<[u8; ECDSA_SIGNATURE_BYTES]> for Signature {
     }
 }
 
-impl Into<(u8, [u8; 32], [u8; 32])> for Signature {
-    fn into(self) -> (u8, [u8; 32], [u8; 32]) {
+impl Into<(u16, [u16; 32], [u16; 32])> for Signature {
+    fn into(self) -> (u16, [u16; 32], [u16; 32]) {
         (self.v, self.r, self.s)
     }
 }
@@ -58,7 +58,7 @@ impl Into<String> for Signature {
 
 /// Private key used as x in an ECDSA signature
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PrivateKey(pub [u8; PRIVATE_KEY_BYTES]);
+pub struct PrivateKey(pub [u16; PRIVATE_KEY_BYTES]);
 
 impl PrivateKey {
     /// Generate a new `PrivateKey` at random (`rand::OsRng`)
@@ -81,11 +81,11 @@ impl PrivateKey {
     ///
     /// ```
     /// const PKB: usize = emerald_rs::PRIVATE_KEY_BYTES;
-    /// let pk = emerald_rs::PrivateKey::try_from(&[0u8; PKB]).unwrap();
+    /// let pk = emerald_rs::PrivateKey::try_from(&[0u16; PKB]).unwrap();
     /// assert_eq!(pk.to_string(),
     ///            "0x0000000000000000000000000000000000000000000000000000000000000000");
     /// ```
-    pub fn try_from(data: &[u8]) -> Result<Self, Error> {
+    pub fn try_from(data: &[u16]) -> Result<Self, Error> {
         if data.len() != PRIVATE_KEY_BYTES {
             return Err(Error::InvalidLength(data.len()));
         }
@@ -106,20 +106,20 @@ impl PrivateKey {
     }
 
     /// Sign a slice of bytes
-    pub fn sign_bytes(&self, data: &[u8]) -> Result<Signature, Error> {
+    pub fn sign_bytes(&self, data: &[u16]) -> Result<Signature, Error> {
         self.sign_hash(bytes_hash(data))
     }
 
     /// Sign hash from message (Keccak-256)
-    pub fn sign_hash(&self, hash: [u8; KECCAK256_BYTES]) -> Result<Signature, Error> {
+    pub fn sign_hash(&self, hash: [u16; KECCAK256_BYTES]) -> Result<Signature, Error> {
         let msg = Message::from_slice(&hash)?;
         let key = SecretKey::from_slice(&ECDSA, self)?;
 
         let s = ECDSA.sign_recoverable(&msg, &key)?;
         let (rid, sig) = s.serialize_compact(&ECDSA);
 
-        let mut buf = [0u8; ECDSA_SIGNATURE_BYTES];
-        buf[0] = (rid.to_i32() + 27) as u8;
+        let mut buf = [0u16; ECDSA_SIGNATURE_BYTES];
+        buf[0] = (rid.to_i32() + 27) as u16;
         buf[1..65].copy_from_slice(&sig[0..64]);
 
         Ok(Signature::from(buf))
@@ -127,15 +127,15 @@ impl PrivateKey {
 }
 
 impl ops::Deref for PrivateKey {
-    type Target = [u8];
+    type Target = [u16];
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl From<[u8; PRIVATE_KEY_BYTES]> for PrivateKey {
-    fn from(bytes: [u8; PRIVATE_KEY_BYTES]) -> Self {
+impl From<[u16; PRIVATE_KEY_BYTES]> for PrivateKey {
+    fn from(bytes: [u16; PRIVATE_KEY_BYTES]) -> Self {
         PrivateKey(bytes)
     }
 }
@@ -180,18 +180,18 @@ fn os_random() -> OsRng {
     OsRng::new().expect("Expect OS specific random number generator")
 }
 
-fn message_hash(msg: &str) -> [u8; KECCAK256_BYTES] {
+fn message_hash(msg: &str) -> [u16; KECCAK256_BYTES] {
     bytes_hash(msg.as_bytes())
 }
 
-fn bytes_hash(data: &[u8]) -> [u8; KECCAK256_BYTES] {
+fn bytes_hash(data: &[u16]) -> [u16; KECCAK256_BYTES] {
     let mut v = prefix(data).into_bytes();
     v.extend_from_slice(data);
     keccak256(&v)
 }
 
 /// [internal/ethapi: add personal sign method](https://github.com/ethereum/go-ethereum/pull/2940)
-fn prefix(data: &[u8]) -> String {
+fn prefix(data: &[u16]) -> String {
     format!("\x19Ethereum Signed Message:\x0a{}", data.len())
 }
 

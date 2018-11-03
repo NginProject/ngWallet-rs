@@ -4,24 +4,24 @@ macro_rules! byte_array_struct {
     ($name:ident, $num:expr) => {
         #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
         ///
-        pub struct $name([u8; $num]);
+        pub struct $name([u16; $num]);
 
         impl ::std::ops::Deref for $name {
-            type Target = [u8];
+            type Target = [u16];
 
             fn deref(&self) -> &Self::Target {
                 &self.0
             }
         }
 
-        impl From<[u8; $num]> for $name {
-            fn from(bytes: [u8; $num]) -> Self {
+        impl From<[u16; $num]> for $name {
+            fn from(bytes: [u16; $num]) -> Self {
                 $name(bytes)
             }
         }
 
-        impl Into<[u8; $num]> for $name {
-            fn into(self) -> [u8; $num] {
+        impl Into<[u16; $num]> for $name {
+            fn into(self) -> [u16; $num] {
                 self.0
             }
         }
@@ -39,7 +39,7 @@ macro_rules! byte_array_struct {
                     return Err(::serde::de::Error::custom(&format!("Byte array invalid length: {}", v.len())));
                 }
 
-                let mut bytes = [0u8; $num];
+                let mut bytes = [0u16; $num];
                 bytes.copy_from_slice(&v);
 
                 Ok($name(bytes))
@@ -66,7 +66,7 @@ macro_rules! byte_array_struct {
 //                    return Err(d.error(&format!("Byte array invalid length: {}", v.len())));
 //                }
 //
-//                let mut bytes = [0u8; $num];
+//                let mut bytes = [0u16; $num];
 //
 //                bytes.copy_from_slice(&v);
 //

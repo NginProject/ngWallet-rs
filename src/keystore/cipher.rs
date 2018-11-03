@@ -18,8 +18,8 @@ pub enum Cipher {
 
 impl Cipher {
     /// Encrypt given text with provided key and initial vector
-    pub fn encrypt(&self, data: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
-        let mut buf = vec![0u8; data.len()];
+    pub fn encrypt(&self, data: &[u16], key: &[u16], iv: &[u16]) -> Vec<u16> {
+        let mut buf = vec![0u16; data.len()];
         let mut ctr = ctr(KeySize::KeySize128, key, iv);
         ctr.process(data, buf.as_mut_slice());
         buf

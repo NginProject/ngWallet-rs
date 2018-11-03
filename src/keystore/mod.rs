@@ -153,7 +153,7 @@ impl KeyFile {
                 let mut v = derived[16..32].to_vec();
                 v.extend_from_slice(&core.cipher_text);
 
-                let mac: [u8; KECCAK256_BYTES] = core.mac.into();
+                let mac: [u16; KECCAK256_BYTES] = core.mac.into();
                 if keccak256(&v) != mac {
                     return Err(Error::FailedMacValidation);
                 }
@@ -180,7 +180,7 @@ impl KeyFile {
     pub fn encrypt_key_custom<R: Rng>(&mut self, pk: PrivateKey, passphrase: &str, rng: &mut R) {
         match self.crypto {
             CryptoType::Core(ref mut core) => {
-                let mut buf_salt: [u8; KDF_SALT_BYTES] = [0; KDF_SALT_BYTES];
+                let mut buf_salt: [u16; KDF_SALT_BYTES] = [0; KDF_SALT_BYTES];
                 rng.fill_bytes(&mut buf_salt);
                 core.kdf_params.salt = Salt::from(buf_salt);
 
@@ -190,7 +190,7 @@ impl KeyFile {
                     passphrase,
                 );
 
-                let mut buf_iv: [u8; CIPHER_IV_BYTES] = [0; CIPHER_IV_BYTES];
+                let mut buf_iv: [u16; CIPHER_IV_BYTES] = [0; CIPHER_IV_BYTES];
                 rng.fill_bytes(&mut buf_iv);
                 core.cipher_params.iv = Iv::from(buf_iv);
 

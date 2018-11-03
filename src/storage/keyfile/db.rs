@@ -121,7 +121,7 @@ impl KeyfileStorage for DbStorage {
                     }
                 }
                 Err(_) => {
-                    let data: [u8; 20] = util::to_arr(&*addr);
+                    let data: [u16; 20] = util::to_arr(&*addr);
                     info!(
                         "Invalid keystore file format for address: {}",
                         Address::from(data)

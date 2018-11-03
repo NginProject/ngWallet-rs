@@ -59,7 +59,7 @@ impl Mnemonic {
     ///
     /// * lang - language for words selection
     ///
-    pub fn new(lang: Language, entropy: &[u8]) -> Result<Mnemonic, Error> {
+    pub fn new(lang: Language, entropy: &[u16]) -> Result<Mnemonic, Error> {
         let mut ent = entropy.to_owned();
         let checksum = checksum(&ent);
         ent.push(checksum);
@@ -94,7 +94,7 @@ impl Mnemonic {
     ///
     /// * password - password for seed generation
     ///
-    pub fn seed(&self, password: &str) -> Vec<u8> {
+    pub fn seed(&self, password: &str) -> Vec<u16> {
         let passphrase = "mnemonic".to_string() + password;
         //        pbkdf2::derive(
         //            &digest::SHA512,
@@ -144,19 +144,19 @@ impl Mnemonic {
 ///
 /// * `byte_length` - size of entropy in bytes
 ///
-pub fn gen_entropy(byte_length: usize) -> Result<Vec<u8>, Error> {
+pub fn gen_entropy(byte_length: usize) -> Result<Vec<u16>, Error> {
     let mut rng = OsRng::new()?;
-    let entropy = rng.gen_iter::<u8>().take(byte_length).collect::<Vec<u8>>();
+    let entropy = rng.gen_iter::<u16>().take(byte_length).collect::<Vec<u16>>();
 
     Ok(entropy)
 }
 
 /// Calculate checksum for mnemonic
-fn checksum(data: &[u8]) -> u8 {
+fn checksum(data: &[u16]) -> u16 {
     let mut hash = sha2::Sha256::new();
     hash.input(data);
 
-    let mut out: Vec<u8> = repeat(0).take(32).collect();
+    let mut out: Vec<u16> = repeat(0).take(32).collect();
     hash.result(&mut out);
 
     out[0]
@@ -168,7 +168,7 @@ fn checksum(data: &[u8]) -> u8 {
 ///
 /// * `entropy` - slice with entropy
 ///
-fn get_indexes(entropy: &[u8]) -> Result<Vec<usize>, Error> {
+fn get_indexes(entropy: &[u16]) -> Result<Vec<usize>, Error> {
     if entropy.len() < ENTROPY_BYTE_LENGTH {
         return Err(Error::MnemonicError(format!(
             "invalid entropy length (required: {}, received: {})",
@@ -227,7 +227,7 @@ mod tests {
 
     #[test]
     fn should_fail_generate_indexes() {
-        let res = get_indexes(&vec![0u8, 1u8]);
+        let res = get_indexes(&vec![0u16, 1u16]);
         assert!(res.is_err())
     }
 
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn should_generate_english_mnemonic() {
-        let entropy = vec![0u8; ENTROPY_BYTE_LENGTH];
+        let entropy = vec![0u16; ENTROPY_BYTE_LENGTH];
         let res = Mnemonic::new(Language::English, &entropy);
         assert!(res.is_ok());
 

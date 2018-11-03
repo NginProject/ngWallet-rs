@@ -118,8 +118,8 @@ pub enum Kdf {
 
 impl Kdf {
     /// Derive fixed size key for given salt and passphrase
-    pub fn derive(&self, len: usize, kdf_salt: &[u8], passphrase: &str) -> Vec<u8> {
-        let mut key = vec![0u8; len];
+    pub fn derive(&self, len: usize, kdf_salt: &[u16], passphrase: &str) -> Vec<u16> {
+        let mut key = vec![0u16; len];
 
         match *self {
             Kdf::Pbkdf2 { prf, c } => {
@@ -136,7 +136,7 @@ impl Kdf {
             }
             #[cfg(target_os = "windows")]
             Kdf::Scrypt { n, r, p } => {
-                let log_n = (n as f64).log2().round() as u8;
+                let log_n = (n as f64).log2().round() as u16;
                 let params = ScryptParams::new(log_n, r, p);
                 scrypt(passphrase.as_bytes(), kdf_salt, &params, &mut key);
             }

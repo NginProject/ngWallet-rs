@@ -19,15 +19,15 @@ use serde_json;
 use uuid::Uuid;
 
 /// Keystore file current version used for serializing
-pub const CURRENT_VERSION: u8 = 3;
+pub const CURRENT_VERSION: u16 = 3;
 
 /// Supported keystore file versions (only current V3 now)
-pub const SUPPORTED_VERSIONS: &[u8] = &[CURRENT_VERSION];
+pub const SUPPORTED_VERSIONS: &[u16] = &[CURRENT_VERSION];
 
 /// A serializable keystore file (UTC / JSON format)
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SerializableKeyFileCore {
-    version: u8,
+    version: u16,
     id: Uuid,
     address: Address,
     name: Option<String>,
@@ -68,7 +68,7 @@ impl Into<KeyFile> for SerializableKeyFileCore {
 /// A serializable keystore file (UTC / JSON format)
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SerializableKeyFileHD {
-    version: u8,
+    version: u16,
     id: Uuid,
     address: Address,
     name: Option<String>,

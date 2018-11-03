@@ -10,7 +10,7 @@ use std::{error, fmt, io};
 #[derive(Debug)]
 pub enum Error {
     /// An unsupported version
-    UnsupportedVersion(u8),
+    UnsupportedVersion(u16),
 
     /// IO errors
     IO(io::Error),

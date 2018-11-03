@@ -163,7 +163,7 @@ pub fn start(
             wrapper(serves::sign_transaction(
                 parse(p)?,
                 &storage_ctrl,
-                111,
+                chain_id,
                 &wm,
             ))
         });

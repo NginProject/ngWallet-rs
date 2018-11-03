@@ -16,7 +16,7 @@ pub struct CoreCrypto {
     pub cipher: Cipher,
 
     /// Cipher text
-    pub cipher_text: Vec<u8>,
+    pub cipher_text: Vec<u16>,
 
     /// Params for `Cipher`
     pub cipher_params: CipherParams,

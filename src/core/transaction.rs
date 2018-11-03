@@ -10,7 +10,7 @@ pub struct Transaction {
     pub nonce: u64,
 
     /// Gas Price
-    pub gas_price: [u8; 32],
+    pub gas_price: [u16; 32],
 
     /// Gas Limit
     pub gas_limit: u64,
@@ -19,21 +19,21 @@ pub struct Transaction {
     pub to: Option<Address>,
 
     /// Value transferred with transaction
-    pub value: [u8; 32],
+    pub value: [u16; 32],
 
     /// Data transferred with transaction
-    pub data: Vec<u8>,
+    pub data: Vec<u16>,
 }
 
 impl Transaction {
     /// Sign transaction data with provided private key
-    pub fn to_signed_raw(&self, pk: PrivateKey, chain: u8) -> Result<Vec<u8>, Error> {
+    pub fn to_signed_raw(&self, pk: PrivateKey, chain: u16) -> Result<Vec<u16>, Error> {
         let sig = pk.sign_hash(self.hash(chain))?;
         Ok(self.raw_from_sig(chain, &sig))
     }
 
     /// RLP packed signed transaction from provided `Signature`
-    pub fn raw_from_sig(&self, chain: u8, sig: &Signature) -> Vec<u8> {
+    pub fn raw_from_sig(&self, chain: u16, sig: &Signature) -> Vec<u16> {
         let mut rlp = self.to_rlp_raw(None);
 
         // [Simple replay attack protection](https://github.com/ethereum/eips/issues/155)
@@ -45,7 +45,7 @@ impl Transaction {
             v += stamp;
         }
 
-        rlp.push(&(v as u8));
+        rlp.push(&(v as u16));
         rlp.push(&sig.r[..]);
         rlp.push(&sig.s[..]);
 
@@ -56,14 +56,14 @@ impl Transaction {
     }
 
     /// RLP packed transaction
-    pub fn to_rlp(&self, chain_id: Option<u8>) -> Vec<u8> {
+    pub fn to_rlp(&self, chain_id: Option<u16>) -> Vec<u16> {
         let mut buf = Vec::new();
         self.to_rlp_raw(chain_id).write_rlp(&mut buf);
 
         buf
     }
 
-    fn to_rlp_raw(&self, chain_id: Option<u8>) -> RLPList {
+    fn to_rlp_raw(&self, chain_id: Option<u16>) -> RLPList {
         let mut data = RLPList::default();
 
         data.push(&self.nonce);
@@ -72,7 +72,7 @@ impl Transaction {
 
         match self.to {
             Some(addr) => data.push(&Some(&addr[..])),
-            _ => data.push::<Option<&[u8]>>(&None),
+            _ => data.push::<Option<&[u16]>>(&None),
         };
 
         data.push(trim_bytes(&self.value));
@@ -87,7 +87,7 @@ impl Transaction {
         data
     }
 
-    fn hash(&self, chain: u8) -> [u8; KECCAK256_BYTES] {
+    fn hash(&self, chain: u16) -> [u16; KECCAK256_BYTES] {
         let rlp = self.to_rlp_raw(Some(chain));
         let mut vec = Vec::new();
         rlp.write_rlp(&mut vec);
