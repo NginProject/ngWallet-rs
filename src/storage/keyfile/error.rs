@@ -2,8 +2,7 @@
 
 use keystore::SerializeError;
 use rocksdb;
-use serde_json;
-
+use rustc_serialize::json;
 use std::{error, fmt, io, str};
 
 ///
@@ -22,8 +21,8 @@ impl From<rocksdb::Error> for KeystoreError {
     }
 }
 
-impl From<serde_json::Error> for KeystoreError {
-    fn from(err: serde_json::Error) -> Self {
+impl From<json::EncoderError> for KeystoreError {
+    fn from(err: json::EncoderError) -> Self {
         KeystoreError::StorageError(err.to_string())
     }
 }

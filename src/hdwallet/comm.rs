@@ -23,23 +23,23 @@ const INIT_DATA_SIZE: usize = HID_RPT_SIZE - 12;
 const CONT_DATA_SIZE: usize = HID_RPT_SIZE - 5;
 
 /// ISO 7816-4 defined response status words
-pub const SW_NO_ERROR: [u16; 2] = [0x90, 0x00];
-pub const SW_CONDITIONS_NOT_SATISFIED: [u16; 2] = [0x69, 0x85];
-pub const SW_WRONG_DATA: [u16; 2] = [0x6A, 0x80];
-pub const SW_WRONG_LENGTH: [u16; 2] = [0x67, 0x00];
-pub const SW_INCORRECT_PARAMETERS: [u16; 2] = [0x6b, 0x00];
-pub const SW_USER_CANCEL: [u16; 2] = [0x6A, 0x85];
+pub const SW_NO_ERROR: [u8; 2] = [0x90, 0x00];
+pub const SW_CONDITIONS_NOT_SATISFIED: [u8; 2] = [0x69, 0x85];
+pub const SW_WRONG_DATA: [u8; 2] = [0x6A, 0x80];
+pub const SW_WRONG_LENGTH: [u8; 2] = [0x67, 0x00];
+pub const SW_INCORRECT_PARAMETERS: [u8; 2] = [0x6b, 0x00];
+pub const SW_USER_CANCEL: [u8; 2] = [0x6A, 0x85];
 
 /// Packs header with Ledgers magic numbers
 /// For more details refer APDU doc:
 /// <https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#general-purpose-apdus>
 ///
-fn get_hid_header(index: usize) -> [u16; 5] {
-    [0x01, 0x01, 0x05, (index >> 8) as u16, (index & 0xff) as u16]
+fn get_hid_header(index: usize) -> [u8; 5] {
+    [0x01, 0x01, 0x05, (index >> 8) as u8, (index & 0xff) as u8]
 }
 
 ///
-fn check_recv_frame(frame: &[u16], index: usize) -> Result<(), Error> {
+fn check_recv_frame(frame: &[u8], index: usize) -> Result<(), Error> {
     if size_of_val(frame) < 5 || frame[0] != 0x01 || frame[1] != 0x01 || frame[2] != 0x05 {
         return Err(Error::CommError("Invalid frame header size".to_string()));
     }
@@ -56,14 +56,14 @@ fn check_recv_frame(frame: &[u16], index: usize) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_init_header(apdu: &APDU) -> [u16; INIT_HEADER_SIZE] {
+fn get_init_header(apdu: &APDU) -> [u8; INIT_HEADER_SIZE] {
     let mut buf = Vec::with_capacity(INIT_HEADER_SIZE);
-    buf.extend_from_slice(&[(apdu.len() >> 8) as u16, (apdu.len() & 0xff) as u16]);
+    buf.extend_from_slice(&[(apdu.len() >> 8) as u8, (apdu.len() & 0xff) as u8]);
     buf.extend_from_slice(&apdu.raw_header());
     to_arr(&buf)
 }
 
-fn set_data(data: &mut [u16], itr: &mut slice::Iter<u16>, max: usize) {
+fn set_data(data: &mut [u8], itr: &mut slice::Iter<u8>, max: usize) {
     let available = itr.size_hint().0;
 
     for i in 0..min(max, available) {
@@ -73,7 +73,7 @@ fn set_data(data: &mut [u16], itr: &mut slice::Iter<u16>, max: usize) {
 
 /// Check `status word`, if invalid coverts it
 /// to the proper error message
-fn sw_to_error(sw_h: u16, sw_l: u16) -> Result<(), Error> {
+fn sw_to_error(sw_h: u8, sw_l: u8) -> Result<(), Error> {
     match [sw_l, sw_h] {
         SW_NO_ERROR => Ok(()),
         SW_WRONG_LENGTH => Err(Error::CommError("Incorrect length".to_string())),
@@ -91,7 +91,7 @@ fn sw_to_error(sw_h: u16, sw_l: u16) -> Result<(), Error> {
 }
 
 ///
-pub fn sendrecv(dev: &HidDevice, apdu: &APDU) -> Result<Vec<u16>, Error> {
+pub fn sendrecv(dev: &HidDevice, apdu: &APDU) -> Result<Vec<u8>, Error> {
     let mut frame_index: usize = 0;
     let mut data_itr = apdu.data.iter();
     let mut init_sent = false;
@@ -101,7 +101,7 @@ pub fn sendrecv(dev: &HidDevice, apdu: &APDU) -> Result<Vec<u16>, Error> {
     while data_itr.size_hint().0 != 0 {
         // Add 1 to HID_RPT_SIZE since we need to prefix this with a record
         // index.
-        let mut frame: [u16; (HID_RPT_SIZE + 1) as usize] = [0; (HID_RPT_SIZE + 1) as usize];
+        let mut frame: [u8; (HID_RPT_SIZE + 1) as usize] = [0; (HID_RPT_SIZE + 1) as usize];
 
         frame[1..6].clone_from_slice(&get_hid_header(frame_index));
         if !init_sent {
@@ -125,10 +125,10 @@ pub fn sendrecv(dev: &HidDevice, apdu: &APDU) -> Result<Vec<u16>, Error> {
 
     debug!("\t |- read response");
     frame_index = 0;
-    let mut data: Vec<u16> = Vec::new();
+    let mut data: Vec<u8> = Vec::new();
     let datalen: usize;
     let mut recvlen: usize = 0;
-    let mut frame: [u16; HID_RPT_SIZE] = [0u16; HID_RPT_SIZE];
+    let mut frame: [u8; HID_RPT_SIZE] = [0u8; HID_RPT_SIZE];
     let frame_size = dev.read(&mut frame)?;
 
     check_recv_frame(&frame, frame_index)?;
@@ -143,7 +143,7 @@ pub fn sendrecv(dev: &HidDevice, apdu: &APDU) -> Result<Vec<u16>, Error> {
     );
 
     while recvlen < datalen {
-        frame = [0u16; HID_RPT_SIZE];
+        frame = [0u8; HID_RPT_SIZE];
         let frame_size = dev.read(&mut frame)?;
 
         check_recv_frame(&frame, frame_index)?;

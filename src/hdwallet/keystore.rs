@@ -1,8 +1,9 @@
 use super::Error;
-use keystore::{CryptoType, KeyFile};
+use keystore::{decode_str, CryptoType, KeyFile};
+use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 
 /// `Keyfile` for HD Wallet
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HdwalletCrypto {
     /// Cipher type 'hardware'
     pub cipher: String,
@@ -49,30 +50,30 @@ impl Into<KeyFile> for HdwalletCrypto {
     }
 }
 
-//impl Decodable for HdwalletCrypto {
-//    fn decode<D: Decoder>(d: &mut D) -> Result<Self, D::Error> {
-//        d.read_struct("Crypto", 3, |d| {
-//            let cipher = d.read_struct_field("cipher", 0, |d| decode_str(d))?;
-//            let hardware = d.read_struct_field("hardware", 1, |d| decode_str(d))?;
-//            let hd_path = d.read_struct_field("hd_path", 2, |d| decode_str(d))?;
-//
-//            Ok(Self {
-//                cipher,
-//                hardware,
-//                hd_path,
-//            })
-//        })
-//    }
-//}
+impl Decodable for HdwalletCrypto {
+    fn decode<D: Decoder>(d: &mut D) -> Result<Self, D::Error> {
+        d.read_struct("Crypto", 3, |d| {
+            let cipher = d.read_struct_field("cipher", 0, |d| decode_str(d))?;
+            let hardware = d.read_struct_field("hardware", 1, |d| decode_str(d))?;
+            let hd_path = d.read_struct_field("hd_path", 2, |d| decode_str(d))?;
 
-//impl Encodable for HdwalletCrypto {
-//    fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-//        s.emit_struct("Crypto", 3, |s| {
-//            s.emit_struct_field("cipher", 0, |s| s.emit_str(&self.cipher.to_string()))?;
-//            s.emit_struct_field("hardware", 1, |s| self.hardware.encode(s))?;
-//            s.emit_struct_field("hd_path", 2, |s| self.hd_path.encode(s))?;
-//
-//            Ok(())
-//        })
-//    }
-//}
+            Ok(Self {
+                cipher,
+                hardware,
+                hd_path,
+            })
+        })
+    }
+}
+
+impl Encodable for HdwalletCrypto {
+    fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
+        s.emit_struct("Crypto", 3, |s| {
+            s.emit_struct_field("cipher", 0, |s| s.emit_str(&self.cipher.to_string()))?;
+            s.emit_struct_field("hardware", 1, |s| self.hardware.encode(s))?;
+            s.emit_struct_field("hd_path", 2, |s| self.hd_path.encode(s))?;
+
+            Ok(())
+        })
+    }
+}

@@ -7,11 +7,11 @@ use crypto::sha3::{Sha3, Sha3Mode};
 pub const KECCAK256_BYTES: usize = 32;
 
 /// Calculate Keccak-256 crypto hash
-pub fn keccak256(data: &[u16]) -> [u16; KECCAK256_BYTES] {
+pub fn keccak256(data: &[u8]) -> [u8; KECCAK256_BYTES] {
     let mut sha3 = Sha3::new(Sha3Mode::Keccak256);
     sha3.input(data);
 
-    let mut hash = [0u16; KECCAK256_BYTES];
+    let mut hash = [0u8; KECCAK256_BYTES];
     sha3.result(&mut hash);
     hash
 }

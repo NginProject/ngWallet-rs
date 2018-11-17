@@ -11,7 +11,7 @@ pub const ADDRESS_BYTES: usize = 20;
 
 /// Account address (20 bytes)
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Address(pub [u16; ADDRESS_BYTES]);
+pub struct Address(pub [u8; ADDRESS_BYTES]);
 
 impl Address {
     /// Try to convert a byte vector to `Address`.
@@ -23,10 +23,10 @@ impl Address {
     /// # Example
     ///
     /// ```
-    /// let addr = emerald_rs::Address::try_from(&[0u16; emerald_rs::ADDRESS_BYTES]).unwrap();
+    /// let addr = emerald_rs::Address::try_from(&[0u8; emerald_rs::ADDRESS_BYTES]).unwrap();
     /// assert_eq!(addr.to_string(), "0x0000000000000000000000000000000000000000");
     /// ```
-    pub fn try_from(data: &[u16]) -> Result<Self, Error> {
+    pub fn try_from(data: &[u8]) -> Result<Self, Error> {
         if data.len() != ADDRESS_BYTES {
             return Err(Error::InvalidLength(data.len()));
         }
@@ -36,15 +36,15 @@ impl Address {
 }
 
 impl ops::Deref for Address {
-    type Target = [u16];
+    type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl From<[u16; ADDRESS_BYTES]> for Address {
-    fn from(bytes: [u16; ADDRESS_BYTES]) -> Self {
+impl From<[u8; ADDRESS_BYTES]> for Address {
+    fn from(bytes: [u8; ADDRESS_BYTES]) -> Self {
         Address(bytes)
     }
 }

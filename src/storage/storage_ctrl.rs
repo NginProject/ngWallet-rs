@@ -1,10 +1,8 @@
 use super::addressbook::AddressbookStorage;
 use super::contracts::ContractStorage;
 use super::keyfile::KeystoreError;
-use super::{
-    build_addressbook_storage, build_contract_storage, build_keyfile_storage, build_path,
-    KeyfileStorage,
-};
+use super::{build_addressbook_storage, build_contract_storage, build_keyfile_storage, build_path,
+            KeyfileStorage};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -17,7 +15,6 @@ pub struct StorageController {
 
 impl StorageController {
     /// Create new `StorageController`
-    /// with a subfolders for
     pub fn new<P: AsRef<Path>>(base_path: P) -> Result<StorageController, KeystoreError> {
         let mut st = StorageController::default();
 

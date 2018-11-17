@@ -10,7 +10,7 @@ pub struct Transaction {
     pub nonce: u64,
 
     /// Gas Price
-    pub gas_price: [u16; 32],
+    pub gas_price: [u8; 32],
 
     /// Gas Limit
     pub gas_limit: u64,
@@ -19,21 +19,21 @@ pub struct Transaction {
     pub to: Option<Address>,
 
     /// Value transferred with transaction
-    pub value: [u16; 32],
+    pub value: [u8; 32],
 
     /// Data transferred with transaction
-    pub data: Vec<u16>,
+    pub data: Vec<u8>,
 }
 
 impl Transaction {
     /// Sign transaction data with provided private key
-    pub fn to_signed_raw(&self, pk: PrivateKey, chain: u16) -> Result<Vec<u16>, Error> {
+    pub fn to_signed_raw(&self, pk: PrivateKey, chain: u16) -> Result<Vec<u8>, Error> {
         let sig = pk.sign_hash(self.hash(chain))?;
         Ok(self.raw_from_sig(chain, &sig))
     }
 
     /// RLP packed signed transaction from provided `Signature`
-    pub fn raw_from_sig(&self, chain: u16, sig: &Signature) -> Vec<u16> {
+    pub fn raw_from_sig(&self, chain: u16, sig: &Signature) -> Vec<u8> {
         let mut rlp = self.to_rlp_raw(None);
 
         // [Simple replay attack protection](https://github.com/ethereum/eips/issues/155)
@@ -45,7 +45,7 @@ impl Transaction {
             v += stamp;
         }
 
-        rlp.push(&(v as u16));
+        rlp.push(&(v as u8));
         rlp.push(&sig.r[..]);
         rlp.push(&sig.s[..]);
 
@@ -56,7 +56,7 @@ impl Transaction {
     }
 
     /// RLP packed transaction
-    pub fn to_rlp(&self, chain_id: Option<u16>) -> Vec<u16> {
+    pub fn to_rlp(&self, chain_id: Option<u16>) -> Vec<u8> {
         let mut buf = Vec::new();
         self.to_rlp_raw(chain_id).write_rlp(&mut buf);
 
@@ -72,7 +72,7 @@ impl Transaction {
 
         match self.to {
             Some(addr) => data.push(&Some(&addr[..])),
-            _ => data.push::<Option<&[u16]>>(&None),
+            _ => data.push::<Option<&[u8]>>(&None),
         };
 
         data.push(trim_bytes(&self.value));
@@ -87,7 +87,7 @@ impl Transaction {
         data
     }
 
-    fn hash(&self, chain: u16) -> [u16; KECCAK256_BYTES] {
+    fn hash(&self, chain: u16) -> [u8; KECCAK256_BYTES] {
         let rlp = self.to_rlp_raw(Some(chain));
         let mut vec = Vec::new();
         rlp.write_rlp(&mut vec);
@@ -126,7 +126,7 @@ mod tests {
            "to":"0x3f4E0668C20E100d7C2A27D4b177Ac65B2875D26",
            "value":"0x0de0b6b3a7640000",
            "data":"",
-           "chainId":111
+           "chainId":61
         }
         */
 
@@ -134,7 +134,7 @@ mod tests {
             "00b413b37c71bfb92719d16e28d7329dea5befa0d0b8190742f89e55617991cf",
         ));
 
-        let hex = tx.to_signed_raw(pk, 111 /*MAINNET_ID*/).unwrap().to_hex();
+        let hex = tx.to_signed_raw(pk, 61 /*MAINNET_ID*/).unwrap().to_hex();
         assert_eq!(hex,
                     "f86d\
                     808504e3b29200825208\
@@ -187,7 +187,7 @@ mod tests {
             "28b469dc4b039ff63fcd4cb708c668545e644cb25f21df6920aac20e4bc743f7",
         ));
 
-        assert_eq!(tx.to_signed_raw(pk, 101 /*TESTNET_ID*/).unwrap().to_hex(),
+        assert_eq!(tx.to_signed_raw(pk, 62 /*TESTNET_ID*/).unwrap().to_hex(),
                     "f871\
                     83\
                     100009\

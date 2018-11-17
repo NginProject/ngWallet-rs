@@ -9,17 +9,16 @@ use std::str::FromStr;
 pub const AES128_CTR_CIPHER_NAME: &str = "aes-128-ctr";
 
 /// Cipher type
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Cipher {
     /// AES-CTR (specified in (RFC 3686)[https://tools.ietf.org/html/rfc3686])
-    #[serde(rename = "aes-128-ctr")]
     Aes128Ctr,
 }
 
 impl Cipher {
     /// Encrypt given text with provided key and initial vector
-    pub fn encrypt(&self, data: &[u16], key: &[u16], iv: &[u16]) -> Vec<u16> {
-        let mut buf = vec![0u16; data.len()];
+    pub fn encrypt(&self, data: &[u8], key: &[u8], iv: &[u8]) -> Vec<u8> {
+        let mut buf = vec![0u8; data.len()];
         let mut ctr = ctr(KeySize::KeySize128, key, iv);
         ctr.process(data, buf.as_mut_slice());
         buf

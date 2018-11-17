@@ -19,8 +19,8 @@ use hidapi::{HidApi, HidDevice, HidDeviceInfo};
 use std::str::{from_utf8, FromStr};
 use std::{thread, time};
 
-const GET_ETH_ADDRESS: u16 = 0x02;
-const SIGN_ETH_TRANSACTION: u16 = 0x04;
+const GET_ETH_ADDRESS: u8 = 0x02;
+const SIGN_ETH_TRANSACTION: u8 = 0x04;
 const CHUNK_SIZE: usize = 255;
 
 const LEDGER_VID: u16 = 0x2c97;
@@ -66,13 +66,13 @@ pub struct WManager {
     /// List of available wallets
     devices: Vec<Device>,
     /// Derivation path
-    hd_path: Option<Vec<u16>>,
+    hd_path: Option<Vec<u8>>,
 }
 
 impl WManager {
     /// Creates new `Wallet Manager` with a specified
     /// derivation path
-    pub fn new(hd_path: Option<Vec<u16>>) -> Result<WManager, Error> {
+    pub fn new(hd_path: Option<Vec<u8>>) -> Result<WManager, Error> {
         Ok(Self {
             hid: HidApi::new()?,
             devices: Vec::new(),
@@ -81,7 +81,7 @@ impl WManager {
     }
 
     /// Decides what HD path to use
-    fn pick_hd_path(&self, h: Option<Vec<u16>>) -> Result<Vec<u16>, Error> {
+    fn pick_hd_path(&self, h: Option<Vec<u8>>) -> Result<Vec<u8>, Error> {
         if self.hd_path.is_none() && h.is_none() {
             return Err(Error::HDWalletError("HD path is not specified".to_string()));
         }
@@ -95,7 +95,7 @@ impl WManager {
     /// fd - file descriptor to corresponding HID device
     /// hd_path - optional HD path, prefixed with count of derivation indexes
     ///
-    pub fn get_address(&self, fd: &str, hd_path: Option<Vec<u16>>) -> Result<Address, Error> {
+    pub fn get_address(&self, fd: &str, hd_path: Option<Vec<u8>>) -> Result<Address, Error> {
         let hd_path = self.pick_hd_path(hd_path)?;
 
         let apdu = ApduBuilder::new(GET_ETH_ADDRESS)
@@ -111,7 +111,7 @@ impl WManager {
                     "Address read returned invalid data length".to_string(),
                 )),
             })
-            .and_then(|res: Vec<u16>| {
+            .and_then(|res: Vec<u8>| {
                 from_utf8(&res[67..107])
                     .map(|ptr| ptr.to_string())
                     .map_err(|e| {
@@ -136,9 +136,9 @@ impl WManager {
     ///
     pub fn sign(
         &self,
-        _fd: &str,
-        _data: &[u16],
-        _hd_path: &Option<Vec<u16>>,
+        fd: &str,
+        data: &[u8],
+        hd_path: &Option<Vec<u8>>,
     ) -> Result<Signature, Error> {
         Err(Error::HDWalletError("Can't sign data".to_string()))
     }
@@ -153,8 +153,8 @@ impl WManager {
     pub fn sign_transaction(
         &self,
         fd: &str,
-        tr: &[u16],
-        hd_path: Option<Vec<u16>>,
+        tr: &[u8],
+        hd_path: Option<Vec<u8>>,
     ) -> Result<Signature, Error> {
         let hd_path = self.pick_hd_path(hd_path)?;
 
@@ -183,7 +183,7 @@ impl WManager {
         debug!("Received signature: {:?}", res);
         match res.len() {
             ECDSA_SIGNATURE_BYTES => {
-                let mut val: [u16; ECDSA_SIGNATURE_BYTES] = [0; ECDSA_SIGNATURE_BYTES];
+                let mut val: [u8; ECDSA_SIGNATURE_BYTES] = [0; ECDSA_SIGNATURE_BYTES];
                 val.copy_from_slice(&res);
 
                 Ok(Signature::from(val))
@@ -204,7 +204,7 @@ impl WManager {
     }
 
     /// Update device list
-    pub fn update(&mut self, hd_path: Option<Vec<u16>>) -> Result<(), Error> {
+    pub fn update(&mut self, hd_path: Option<Vec<u8>>) -> Result<(), Error> {
         let hd_path = self.pick_hd_path(hd_path)?;
 
         self.hid.refresh_devices();
@@ -245,7 +245,7 @@ mod tests {
     use rustc_serialize::hex::ToHex;
     use tests::*;
 
-    pub const ETC_DERIVATION_PATH: [u16; 21] = [
+    pub const ETC_DERIVATION_PATH: [u8; 21] = [
         5, 0x80, 0, 0, 44, 0x80, 0, 0, 60, 0x80, 0x02, 0x73, 0xd0, 0x80, 0, 0, 0, 0, 0, 0, 0,
     ]; // 44'/60'/160720'/0'/0
 
@@ -275,7 +275,7 @@ mod tests {
             data: Vec::new(),
         };
 
-        let chain: u16 = 111;
+        let chain: u8 = 101;
         let rlp = tx.to_rlp(Some(chain));
         let fd = &manager.devices()[0].1;
         let sign = manager.sign_transaction(&fd, &rlp, None).unwrap();
