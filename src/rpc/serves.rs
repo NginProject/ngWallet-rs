@@ -8,15 +8,16 @@ use hdwallet::WManager;
 use jsonrpc_core::{Params, Value};
 use keystore::{os_random, CryptoType, Kdf, KdfDepthLevel, KeyFile, PBKDF2_KDF_NAME};
 use mnemonic::{self, gen_entropy, HDPath, Language, Mnemonic, ENTROPY_BYTE_LENGTH};
+use rustc_serialize::json as rustc_json;
 use serde_json;
 use std::cell::RefCell;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use util;
 
-fn to_chain_id(chain: &str, chain_id: Option<usize>, default_id: u16) -> u16 {
+fn to_chain_id(chain: &str, chain_id: Option<usize>, default_id: u8) -> u8 {
     if chain_id.is_some() {
-        return chain_id.unwrap() as u16;
+        return chain_id.unwrap() as u8;
     }
 
     util::to_chain_id(chain).unwrap_or(default_id)
@@ -59,7 +60,7 @@ impl<T, U: Default> Either<(T,), (T, U)> {
     }
 }
 
-pub fn heartbeat() -> Result<i64, Error> {
+pub fn heartbeat(_params: ()) -> Result<i64, Error> {
     use time::get_time;
     let res = get_time().sec;
     debug!("Emerald heartbeat: {}", res);
@@ -67,11 +68,11 @@ pub fn heartbeat() -> Result<i64, Error> {
     Ok(res)
 }
 
-pub fn current_version() -> Result<&'static str, Error> {
+pub fn current_version(_params: ()) -> Result<&'static str, Error> {
     Ok(::version())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 pub struct ListAccountAccount {
     name: String,
     address: String,
@@ -184,7 +185,7 @@ pub fn shake_account(
             let new_kf = KeyFile::new_custom(
                 pk,
                 &account.new_passphrase,
-                core.kdf_params.kdf,
+                core.kdf,
                 &mut os_random(),
                 kf.name,
                 kf.description,
@@ -248,7 +249,7 @@ pub fn import_account(
     let storage = storage_ctrl.get_keystore(&additional.chain)?;
     let raw = serde_json::to_string(&raw)?;
 
-    let kf = KeyFile::decode(&raw)?;
+    let kf = KeyFile::decode(&raw.to_lowercase())?;
     storage.put(&kf)?;
 
     debug!("Account imported: {}", kf.address);
@@ -266,7 +267,8 @@ pub fn export_account(
     let addr = Address::from_str(&account.address)?;
 
     let (_, kf) = storage.search_by_address(&addr)?;
-    let value = serde_json::to_value(&kf)?;
+    let raw = rustc_json::encode(&kf)?;
+    let value = serde_json::to_value(&raw)?;
     debug!("Account exported: {}", kf.address);
 
     Ok(value)
@@ -336,7 +338,7 @@ pub struct SignTxAdditional {
 pub fn sign_transaction(
     params: Either<(SignTxTransaction,), (SignTxTransaction, SignTxAdditional)>,
     storage: &Arc<Mutex<Arc<Box<StorageController>>>>,
-    default_chain_id: u16,
+    default_chain_id: u8,
     wallet_manager: &Arc<Mutex<RefCell<WManager>>>,
 ) -> Result<Params, Error> {
     let storage_ctrl = storage.lock().unwrap();
@@ -359,7 +361,7 @@ pub fn sign_transaction(
                 data: transaction.data,
                 nonce: transaction.nonce,
             };
-            let chain_id :u16 = 111; // default_chain_id; // to_chain_id(&additional.chain, additional.chain_id, default_chain_id);
+            let chain_id = to_chain_id(&additional.chain, additional.chain_id, default_chain_id);
             match rpc_transaction.try_into() {
                 Ok(tr) => {
                     match kf.crypto {
@@ -372,8 +374,7 @@ pub fn sign_transaction(
                             let pass = transaction.passphrase.unwrap();
 
                             if let Ok(pk) = kf.decrypt_key(&pass) {
-                                let raw = tr
-                                    .to_signed_raw(pk, chain_id)
+                                let raw = tr.to_signed_raw(pk, chain_id)
                                     .expect("Expect to sign a transaction");
                                 let signed = Transaction::to_raw_params(&raw);
                                 debug!("Signed transaction to: {:?}\n\t raw: {:?}", &tr.to, signed);

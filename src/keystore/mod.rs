@@ -2,21 +2,20 @@
 //!
 //! [Web3 Secret Storage Definition](
 //! https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition)
+
 mod cipher;
 mod error;
 mod kdf;
 mod prf;
-#[macro_use]
 mod serialize;
 
 pub use self::cipher::Cipher;
 pub use self::error::Error;
-pub use self::kdf::{Kdf, KdfDepthLevel, KdfParams, PBKDF2_KDF_NAME};
+pub use self::kdf::{Kdf, KdfDepthLevel, PBKDF2_KDF_NAME};
 pub use self::prf::Prf;
 pub use self::serialize::Error as SerializeError;
-pub use self::serialize::{
-    try_extract_address, CoreCrypto, Iv, Mac, SerializableKeyFileCore, SerializableKeyFileHD,
-};
+pub use self::serialize::{decode_str, try_extract_address, CoreCrypto, Iv, Mac, Salt,
+                          SerializableKeyFileCore, SerializableKeyFileHD};
 use super::core::{self, Address, PrivateKey};
 use super::util::{self, keccak256, to_arr, KECCAK256_BYTES};
 pub use hdwallet::HdwalletCrypto;
@@ -32,10 +31,8 @@ pub const KDF_SALT_BYTES: usize = 32;
 /// Cipher initialization vector length in bytes
 pub const CIPHER_IV_BYTES: usize = 16;
 
-byte_array_struct!(Salt, KDF_SALT_BYTES);
-
 /// A keystore file (account private core encrypted with a passphrase)
-#[derive(Deserialize, Debug, Clone, Eq)]
+#[derive(Debug, Clone, Eq)]
 pub struct KeyFile {
     /// Specifies if `Keyfile` is visible
     pub visible: Option<bool>,
@@ -58,8 +55,7 @@ pub struct KeyFile {
 
 /// Variants of `crypto` section in `Keyfile`
 ///
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq, Eq, RustcDecodable, RustcEncodable)]
 pub enum CryptoType {
     /// normal Web3 Secret Storage
     Core(CoreCrypto),
@@ -125,7 +121,7 @@ impl KeyFile {
         };
 
         if let CryptoType::Core(ref mut core) = kf.crypto {
-            core.kdf_params.kdf = kdf;
+            core.kdf = kdf;
         }
 
         kf.encrypt_key_custom(pk, passphrase, rng);
@@ -144,16 +140,14 @@ impl KeyFile {
     pub fn decrypt_key(&self, passphrase: &str) -> Result<PrivateKey, Error> {
         match self.crypto {
             CryptoType::Core(ref core) => {
-                let derived = core.kdf_params.kdf.derive(
-                    core.kdf_params.dklen,
-                    &core.kdf_params.salt,
-                    passphrase,
-                );
+                let derived =
+                    core.kdf
+                        .derive(core.kdfparams_dklen, &core.kdfparams_salt, passphrase);
 
                 let mut v = derived[16..32].to_vec();
                 v.extend_from_slice(&core.cipher_text);
 
-                let mac: [u16; KECCAK256_BYTES] = core.mac.into();
+                let mac: [u8; KECCAK256_BYTES] = core.mac.into();
                 if keccak256(&v) != mac {
                     return Err(Error::FailedMacValidation);
                 }
@@ -180,17 +174,15 @@ impl KeyFile {
     pub fn encrypt_key_custom<R: Rng>(&mut self, pk: PrivateKey, passphrase: &str, rng: &mut R) {
         match self.crypto {
             CryptoType::Core(ref mut core) => {
-                let mut buf_salt: [u16; KDF_SALT_BYTES] = [0; KDF_SALT_BYTES];
+                let mut buf_salt: [u8; KDF_SALT_BYTES] = [0; KDF_SALT_BYTES];
                 rng.fill_bytes(&mut buf_salt);
-                core.kdf_params.salt = Salt::from(buf_salt);
+                core.kdfparams_salt = Salt::from(buf_salt);
 
-                let derived = core.kdf_params.kdf.derive(
-                    core.kdf_params.dklen,
-                    &core.kdf_params.salt,
-                    passphrase,
-                );
+                let derived =
+                    core.kdf
+                        .derive(core.kdfparams_dklen, &core.kdfparams_salt, passphrase);
 
-                let mut buf_iv: [u16; CIPHER_IV_BYTES] = [0; CIPHER_IV_BYTES];
+                let mut buf_iv: [u8; CIPHER_IV_BYTES] = [0; CIPHER_IV_BYTES];
                 rng.fill_bytes(&mut buf_iv);
                 core.cipher_params.iv = Iv::from(buf_iv);
 
@@ -271,7 +263,7 @@ mod tests {
             .unwrap();
 
         if let CryptoType::Core(ref core) = kf.crypto {
-            assert_eq!(core.kdf_params.kdf, kdf);
+            assert_eq!(core.kdf, kdf);
         } else {
             assert!(false);
         }

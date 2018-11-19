@@ -65,15 +65,13 @@ pub fn start(
 
     {
         io.add_method("emerald_currentVersion", move |p: Params| {
-            parse(p)?;
-            wrapper(serves::current_version())
+            wrapper(serves::current_version(parse(p)?))
         });
     }
 
     {
         io.add_method("emerald_heartbeat", move |p: Params| {
-            parse(p)?;
-            wrapper(serves::heartbeat())
+            wrapper(serves::heartbeat(parse(p)?))
         });
     }
 

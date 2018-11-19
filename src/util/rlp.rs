@@ -8,13 +8,13 @@ use super::{bytes_count, to_bytes, trim_bytes};
 /// The `WriteRLP` trait is used to specify functionality of serializing data to RLP bytes
 pub trait WriteRLP {
     /// Writes itself as RLP bytes into specified buffer
-    fn write_rlp(&self, buf: &mut Vec<u16>);
+    fn write_rlp(&self, buf: &mut Vec<u8>);
 }
 
 /// A list serializable to RLP
 #[derive(Debug)]
 pub struct RLPList {
-    tail: Vec<u16>,
+    tail: Vec<u8>,
 }
 
 impl RLPList {
@@ -39,18 +39,18 @@ impl Default for RLPList {
     }
 }
 
-impl Into<Vec<u16>> for RLPList {
-    fn into(self) -> Vec<u16> {
-        let mut res: Vec<u16> = Vec::new();
+impl Into<Vec<u8>> for RLPList {
+    fn into(self) -> Vec<u8> {
+        let mut res: Vec<u8> = Vec::new();
         match self.tail.len() {
             s @ 0...55 => {
-                res.push((s + 192) as u16);
+                res.push((s + 192) as u8);
                 res.extend(self.tail.as_slice());
             }
             v => {
                 let sb = to_bytes(v as u64, 8);
                 let size_arr = trim_bytes(&sb);
-                res.push((size_arr.len() + 247) as u16);
+                res.push((size_arr.len() + 247) as u8);
                 res.extend(size_arr);
                 res.extend(self.tail.as_slice());
             }
@@ -60,7 +60,7 @@ impl Into<Vec<u16>> for RLPList {
 }
 
 impl WriteRLP for str {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         let bytes = self.as_bytes();
 
         if self.len() == 1 && bytes[0] <= 0x7f {
@@ -72,7 +72,7 @@ impl WriteRLP for str {
 }
 
 impl WriteRLP for String {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         let bytes = self.as_bytes();
 
         if self.len() == 1 && bytes[0] <= 0x7f {
@@ -83,8 +83,8 @@ impl WriteRLP for String {
     }
 }
 
-impl WriteRLP for u16 {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+impl WriteRLP for u8 {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         if *self == 0 {
             buf.push(0x80);
         } else if *self <= 0x7f {
@@ -96,11 +96,11 @@ impl WriteRLP for u16 {
 }
 
 impl WriteRLP for u16 {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         if *self == 0 {
             buf.push(0x80);
         } else if *self <= 0x7f {
-            buf.push(*self as u16);
+            buf.push(*self as u8);
         } else {
             trim_bytes(&to_bytes(u64::from(*self), 2)).write_rlp(buf);
         }
@@ -108,11 +108,11 @@ impl WriteRLP for u16 {
 }
 
 impl WriteRLP for u32 {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         if *self == 0 {
             buf.push(0x80);
         } else if *self <= 0x7f {
-            buf.push(*self as u16);
+            buf.push(*self as u8);
         } else {
             trim_bytes(&to_bytes(u64::from(*self), 4)).write_rlp(buf);
         }
@@ -120,11 +120,11 @@ impl WriteRLP for u32 {
 }
 
 impl WriteRLP for u64 {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         if *self == 0 {
             buf.push(0x80);
         } else if *self <= 0x7f {
-            buf.push(*self as u16);
+            buf.push(*self as u8);
         } else {
             trim_bytes(&to_bytes(*self, 8)).write_rlp(buf);
         }
@@ -132,7 +132,7 @@ impl WriteRLP for u64 {
 }
 
 impl<'a, T: WriteRLP + ?Sized> WriteRLP for Option<&'a T> {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         match *self {
             Some(x) => x.write_rlp(buf),
             None => [].write_rlp(buf),
@@ -141,19 +141,19 @@ impl<'a, T: WriteRLP + ?Sized> WriteRLP for Option<&'a T> {
 }
 
 impl<T: WriteRLP> WriteRLP for Vec<T> {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         RLPList::from_slice(self).write_rlp(buf);
     }
 }
 
-impl WriteRLP for [u16] {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+impl WriteRLP for [u8] {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         let len = self.len();
         if len <= 55 {
             // Otherwise, if a string is 0-55 bytes long, the RLP encoding consists of a single byte
             // with value 0x80 plus the length of the string followed by the string. The range of
             // the first byte is thus [0x80, 0xb7].
-            buf.push(0x80 + len as u16);
+            buf.push(0x80 + len as u8);
             buf.extend_from_slice(self);
         } else {
             // If a string is more than 55 bytes long, the RLP encoding consists of a single byte
@@ -170,14 +170,14 @@ impl WriteRLP for [u16] {
 }
 
 impl WriteRLP for RLPList {
-    fn write_rlp(&self, buf: &mut Vec<u16>) {
+    fn write_rlp(&self, buf: &mut Vec<u8>) {
         let len = self.tail.len();
         if len <= 55 {
             // If the total payload of a list (i.e. the combined length of all its items) is 0-55
             // bytes long, the RLP encoding consists of a single byte with value 0xc0 plus the
             // length of the list followed by the concatenation of the RLP encodings of the items.
             // The range of the first byte is thus [0xc0, 0xf7].
-            buf.push((0xc0 + len) as u16);
+            buf.push((0xc0 + len) as u8);
         } else {
             // If the total payload of a list is more than 55 bytes long, the RLP encoding consists
             // of a single byte with value 0xf7 plus the length in bytes of the length of the
@@ -200,35 +200,35 @@ mod tests {
     #[test]
     fn encode_zero() {
         let mut buf = Vec::new();
-        0u16.write_rlp(&mut buf);
+        0u8.write_rlp(&mut buf);
         assert_eq!([0x80], buf.as_slice());
     }
 
     #[test]
     fn encode_smallint() {
         let mut buf = Vec::new();
-        1u16.write_rlp(&mut buf);
+        1u8.write_rlp(&mut buf);
         assert_eq!([0x01], buf.as_slice());
     }
 
     #[test]
     fn encode_smallint2() {
         let mut buf = Vec::new();
-        16u16.write_rlp(&mut buf);
+        16u8.write_rlp(&mut buf);
         assert_eq!([0x10], buf.as_slice());
     }
 
     #[test]
     fn encode_smallint3() {
         let mut buf = Vec::new();
-        79u16.write_rlp(&mut buf);
+        79u8.write_rlp(&mut buf);
         assert_eq!([0x4f], buf.as_slice());
     }
 
     #[test]
     fn encode_smallint4() {
         let mut buf = Vec::new();
-        127u16.write_rlp(&mut buf);
+        127u8.write_rlp(&mut buf);
         assert_eq!([0x7f], buf.as_slice());
     }
 
@@ -406,7 +406,7 @@ mod tests {
     #[test]
     fn encode_empty_list() {
         let mut buf = Vec::new();
-        let list: Vec<u16> = vec![];
+        let list: Vec<u8> = vec![];
         list.write_rlp(&mut buf);
         assert_eq!([0xc0], buf.as_slice());
     }

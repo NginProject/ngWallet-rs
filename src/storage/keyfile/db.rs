@@ -5,8 +5,7 @@ use super::{generate_filename, AccountInfo, KeyfileStorage};
 use core::Address;
 use keystore::KeyFile;
 use rocksdb::{IteratorMode, DB};
-
-use serde_json;
+use rustc_serialize::json;
 use std::path::Path;
 use std::str;
 use util;
@@ -60,7 +59,7 @@ impl DbStorage {
 
 impl KeyfileStorage for DbStorage {
     fn put(&self, kf: &KeyFile) -> Result<(), KeystoreError> {
-        let json = serde_json::to_string(&kf)?;
+        let json = json::encode(&kf)?;
         let val = generate_filename(&kf.uuid.to_string()) + SEPARATOR + &json;
         self.db.put(&kf.address, val.as_bytes())?;
 
@@ -121,7 +120,7 @@ impl KeyfileStorage for DbStorage {
                     }
                 }
                 Err(_) => {
-                    let data: [u16; 20] = util::to_arr(&*addr);
+                    let data: [u8; 20] = util::to_arr(&*addr);
                     info!(
                         "Invalid keystore file format for address: {}",
                         Address::from(data)

@@ -82,7 +82,7 @@ impl ops::Deref for HDPath {
 ///  * path - key derivation path
 ///  * seed - seed data for master node
 ///
-pub fn generate_key(path: &HDPath, seed: &[u16]) -> Result<PrivateKey, Error> {
+pub fn generate_key(path: &HDPath, seed: &[u8]) -> Result<PrivateKey, Error> {
     let secp = Secp256k1::new();
     let sk = ExtendedPrivKey::new_master(&secp, Network::Bitcoin, seed)
         .and_then(|k| ExtendedPrivKey::from_path(&secp, &k, path))?;
@@ -97,7 +97,7 @@ pub fn generate_key(path: &HDPath, seed: &[u16]) -> Result<PrivateKey, Error> {
 ///
 /// * hd_str - path string
 ///
-pub fn path_to_arr(hd_str: &str) -> Result<Vec<u16>, Error> {
+pub fn path_to_arr(hd_str: &str) -> Result<Vec<u8>, Error> {
     if !HD_PATH_RE.is_match(hd_str) {
         return Err(Error::HDWalletError(format!(
             "Invalid `hd_path` format: {}",
@@ -134,9 +134,9 @@ pub fn path_to_arr(hd_str: &str) -> Result<Vec<u16>, Error> {
 
 /// Parse HD path into byte array
 /// prefixed with count of derivation indexes
-pub fn to_prefixed_path(hd_str: &str) -> Result<Vec<u16>, Error> {
+pub fn to_prefixed_path(hd_str: &str) -> Result<Vec<u8>, Error> {
     let v = path_to_arr(hd_str)?;
-    let count = (v.len() / DERIVATION_INDEX_SIZE) as u16;
+    let count = (v.len() / DERIVATION_INDEX_SIZE) as u8;
     let mut buf = Vec::with_capacity(v.len() + 1);
 
     buf.push(count);

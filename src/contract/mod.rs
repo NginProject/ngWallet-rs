@@ -22,7 +22,7 @@ impl Contract {
     ///
     /// * `DATA` - A byte slice
     ///
-    pub fn try_from(data: &[u16]) -> Result<Self, Error> {
+    pub fn try_from(data: &[u8]) -> Result<Self, Error> {
         let abi = Interface::load(data)?;
         Ok(Contract { abi })
     }
@@ -40,7 +40,7 @@ impl Contract {
         &self,
         name: String,
         params: Vec<Token>,
-    ) -> Result<Vec<u16>, Error> {
+    ) -> Result<Vec<u8>, Error> {
         let f = self.get_function(name).unwrap();
         f.encode_call(params).map_err(From::from)
     }

@@ -10,7 +10,7 @@ use hex::FromHex;
 use std::io::Cursor;
 use std::mem::transmute;
 
-static HEX_CHARS: &'static [u16] = b"0123456789abcdef";
+static HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 
 /// Convert `self` into hex string
 pub trait ToHex {
@@ -18,7 +18,7 @@ pub trait ToHex {
     fn to_hex(&self) -> String;
 }
 
-impl ToHex for [u16] {
+impl ToHex for [u8] {
     fn to_hex(&self) -> String {
         let mut v = Vec::with_capacity(self.len() * 2);
         for &byte in self.iter() {
@@ -32,7 +32,7 @@ impl ToHex for [u16] {
 
 impl ToHex for u64 {
     fn to_hex(&self) -> String {
-        let bytes: [u16; 8] = unsafe { transmute(self.to_be()) };
+        let bytes: [u8; 8] = unsafe { transmute(self.to_be()) };
         bytes.to_hex()
     }
 }
@@ -42,7 +42,7 @@ impl ToHex for u64 {
 /// # Arguments:
 /// * `id` - target chain id
 ///
-pub fn to_chain_name(id: u16) -> Option<String> {
+pub fn to_chain_name(id: u8) -> Option<String> {
     match id {
         111 => Some("mainnet".to_string()),
         101 => Some("testnet".to_string()),
@@ -55,11 +55,11 @@ pub fn to_chain_name(id: u16) -> Option<String> {
 /// # Arguments:
 /// * `name` - target chain name
 ///
-pub fn to_chain_id(name: &str) -> Option<u16> {
+pub fn to_chain_id(name: &str) -> Option<u8> {
     match name {
         "mainnet" => Some(111),
         "testnet" | "morden" => Some(101),
-        _ => Some(111),
+        _ => None,
     }
 }
 
@@ -69,7 +69,7 @@ pub fn to_chain_id(name: &str) -> Option<u16> {
 ///
 /// * `v` - array to be converted
 ///
-pub fn to_u64(v: &[u16]) -> u64 {
+pub fn to_u64(v: &[u8]) -> u64 {
     let data = align_bytes(v, 8);
     let mut buf = Cursor::new(&data);
 
@@ -114,12 +114,12 @@ where
 /// * `data` - data to be aligned
 /// * `len` - length of required array
 ///
-pub fn align_bytes(data: &[u16], len: usize) -> Vec<u16> {
+pub fn align_bytes(data: &[u8], len: usize) -> Vec<u8> {
     if data.len() >= len {
         return data.to_vec();
     }
 
-    let mut v = vec![0u16; len - data.len()];
+    let mut v = vec![0u8; len - data.len()];
     v.extend_from_slice(data);
     v
 }
@@ -146,10 +146,10 @@ pub fn to_even_str(data: &str) -> String {
 ///
 /// * `data` - value to be trimmed
 ///
-pub fn trim_bytes(data: &[u16]) -> &[u16] {
+pub fn trim_bytes(data: &[u8]) -> &[u8] {
     let mut n = 0;
     for b in data {
-        if *b != 0u16 {
+        if *b != 0u8 {
             break;
         }
         n += 1;
@@ -163,7 +163,7 @@ pub fn trim_bytes(data: &[u16]) -> &[u16] {
 ///
 /// * `x` - value to find size
 ///
-pub fn bytes_count(x: usize) -> u16 {
+pub fn bytes_count(x: usize) -> u8 {
     match x {
         _ if x > 0xff => 1 + bytes_count(x >> 8),
         _ if x > 0 => 1,
@@ -178,10 +178,10 @@ pub fn bytes_count(x: usize) -> u16 {
 /// * `x` - a value to be converted into byte vector
 /// * `len` - size of value
 ///
-pub fn to_bytes(x: u64, len: u16) -> Vec<u16> {
+pub fn to_bytes(x: u64, len: u8) -> Vec<u8> {
     let mut buf = vec![];
     match len {
-        1 => buf.push(x as u16),
+        1 => buf.push(x as u8),
         2 => buf.write_u16::<BigEndian>(x as u16).unwrap(),
         4 => buf.write_u32::<BigEndian>(x as u32).unwrap(),
         8 => buf.write_u64::<BigEndian>(x).unwrap(),
@@ -201,17 +201,17 @@ pub fn timestamp() -> String {
 }
 
 ///
-pub fn to_16bytes(hex: &str) -> [u16; 16] {
+pub fn to_16bytes(hex: &str) -> [u8; 16] {
     to_arr(Vec::from_hex(&hex).unwrap().as_slice())
 }
 
 ///
-pub fn to_20bytes(hex: &str) -> [u16; 20] {
+pub fn to_20bytes(hex: &str) -> [u8; 20] {
     to_arr(Vec::from_hex(&hex).unwrap().as_slice())
 }
 
 ///
-pub fn to_32bytes(hex: &str) -> [u16; 32] {
+pub fn to_32bytes(hex: &str) -> [u8; 32] {
     to_arr(Vec::from_hex(&hex).unwrap().as_slice())
 }
 
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn should_convert_zero_string_into_16bytes() {
-        assert_eq!(to_16bytes("00000000000000000000000000000000"), [0u16; 16]);
+        assert_eq!(to_16bytes("00000000000000000000000000000000"), [0u8; 16]);
     }
 
     #[test]
@@ -302,12 +302,12 @@ mod tests {
 
     #[test]
     fn should_trim_empty_bytes() {
-        assert_eq!(trim_bytes(&[]), &[] as &[u16]);
+        assert_eq!(trim_bytes(&[]), &[] as &[u8]);
     }
 
     #[test]
     fn should_trim_zero_bytes() {
-        assert_eq!(trim_bytes(&[0, 0, 0]), &[] as &[u16]);
+        assert_eq!(trim_bytes(&[0, 0, 0]), &[] as &[u8]);
     }
 
     #[test]
@@ -335,7 +335,7 @@ mod tests {
     }
 
     #[test]
-    fn should_convert_u16_to_bytes() {
+    fn should_convert_u8_to_bytes() {
         assert_eq!([1], to_bytes(1, 1).as_slice());
         assert_eq!([2], to_bytes(2, 1).as_slice());
         assert_eq!([127], to_bytes(127, 1).as_slice());
@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn should_convert_to_chain_id() {
-        assert_eq!(to_chain_id("testnet"), Some(101));
+        assert_eq!(to_chain_id("testnet"), Some(62));
         assert_eq!(to_chain_id("testnet"), to_chain_id("morden"));
     }
 }
