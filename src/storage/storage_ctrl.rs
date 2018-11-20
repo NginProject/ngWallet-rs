@@ -8,16 +8,9 @@ use super::{
 use std::collections::HashMap;
 use std::path::Path;
 
-const CHAIN_NAMES: &'static [&'static str; 9] = &[
-    "eth",
+const CHAIN_NAMES: &'static [&'static str; 2] = &[
+    "mainnet",
     "morden",
-    "ropsten",
-    "rinkeby",
-    "rootstock-main",
-    "rootstock-test",
-    "kovan",
-    "etc",
-    "etc-morden",
 ];
 
 /// Controller to switch storage according to specified chain
