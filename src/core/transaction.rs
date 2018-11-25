@@ -40,15 +40,11 @@ impl Transaction {
         // Can be already applied by HD wallet.
         // TODO: refactor to avoid this check
         let mut v = u16::from(sig.v);
-        print!("Sig.V is {} \n", sig.v);
         let u16chain = u16::from(chain);
-        print!("U16chain is {} \n", u16chain);
         let stamp = u16::from(u16chain * 2 + 35 - 27);
-        if v + stamp <= 0xff {
-            v += stamp;
-        }
-
-        print!("V is {} \n", v);
+//        if v + stamp <= u8::max_value().into() {
+        v += stamp;
+//        }
 
         rlp.push(&(v as u8));
         rlp.push(&sig.r[..]);
