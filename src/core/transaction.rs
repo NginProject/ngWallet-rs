@@ -40,13 +40,15 @@ impl Transaction {
         // Can be already applied by HD wallet.
         // TODO: refactor to avoid this check
         let mut v = u16::from(sig.v);
-        print!("Sig.V is {}", sig.v);
+        print!("Sig.V is {} \n", sig.v);
         let u16chain = u16::from(chain);
-        print!("U16chain is {}", u16chain);
-        let stamp = u16::from(chain * 2 + 35 - 27);
+        print!("U16chain is {} \n", u16chain);
+        let stamp = u16::from(u16chain * 2 + 35 - 27);
         if v + stamp <= 0xff {
             v += stamp;
         }
+
+        print!("V is {} \n", v);
 
         rlp.push(&(v as u8));
         rlp.push(&sig.r[..]);
@@ -137,7 +139,7 @@ mod tests {
             "00b413b37c71bfb92719d16e28d7329dea5befa0d0b8190742f89e55617991cf",
         ));
 
-        let hex = hex::encode(tx.to_signed_raw(pk, 61 /*MAINNET_ID*/).unwrap());
+        let hex = hex::encode(tx.to_signed_raw(pk, 111 /*MAINNET_ID*/).unwrap());
         assert_eq!(hex,
                     "f86d\
                     808504e3b29200825208\
@@ -190,7 +192,7 @@ mod tests {
             "28b469dc4b039ff63fcd4cb708c668545e644cb25f21df6920aac20e4bc743f7",
         ));
 
-        assert_eq!(hex::encode(tx.to_signed_raw(pk, 62 /*TESTNET_ID*/).unwrap()),
+        assert_eq!(hex::encode(tx.to_signed_raw(pk, 101 /*TESTNET_ID*/).unwrap()),
                     "f871\
                     83\
                     100009\
@@ -226,7 +228,7 @@ mod tests {
             "4646464646464646464646464646464646464646464646464646464646464646",
         ));
 
-        assert_eq!(hex::encode(tx.to_signed_raw(pk, 1 /*ETH mainnet*/).unwrap()),
+        assert_eq!(hex::encode(tx.to_signed_raw(pk, 111 /*ETH mainnet*/).unwrap()),
                     "f86c\
                     09\
                     85\
