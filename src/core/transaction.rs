@@ -40,8 +40,8 @@ impl Transaction {
         // Can be already applied by HD wallet.
         // TODO: refactor to avoid this check
         let mut v = u16::from(sig.v);
-        let u16chain = u16::from(chain);
-        let stamp = u16::from(u16chain * 2 + 35 - 27);
+        // let u16chain = u16::from(chain);
+        let stamp = u16::from(chain * 2 + 35 - 27);
         if v + stamp <= 0xff {
             v += stamp;
         }
