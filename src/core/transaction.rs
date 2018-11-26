@@ -46,7 +46,7 @@ impl Transaction {
         v += stamp;
 //        }
 
-        rlp.push(&(v as u8));
+        rlp.push(&(v));
         rlp.push(&sig.r[..]);
         rlp.push(&sig.s[..]);
 
@@ -224,7 +224,7 @@ mod tests {
             "4646464646464646464646464646464646464646464646464646464646464646",
         ));
 
-        assert_eq!(hex::encode(tx.to_signed_raw(pk, 111 /*ETH mainnet*/).unwrap()),
+        assert_eq!(hex::encode(tx.to_signed_raw(pk, 1 /*ETH mainnet*/).unwrap()),
                     "f86c\
                     09\
                     85\
